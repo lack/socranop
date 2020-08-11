@@ -35,12 +35,20 @@ from socranop.common import debug
 
 class NotepadBase:
     def __init__(
-        self, idProduct, routingTarget, stateDir=None, fixedRouting=None,
+        self,
+        idProduct,
+        routingTarget,
+        stateDir=None,
+        fixedRouting=None,
+        playbackLabels=None,
     ):
         if fixedRouting is None:
             fixedRouting = []
+        if playbackLabels is None:
+            playbackLabels = []
         self.routingTarget = routingTarget
         self.fixedRouting = fixedRouting
+        self.playbackLabels = playbackLabels
         if not stateDir:
             stateDir = get_dirs().statedir
         else:
@@ -148,6 +156,10 @@ class NotepadBase:
             pass  # keep current self.state if error reading state from file
 
 
+def label_pair(base, start):
+    return (f"{base}{start}", f"{base}{start+1}")
+
+
 def stereo_label(base):
     return (f"{base} L", f"{base} R")
 
@@ -156,8 +168,12 @@ class Notepad_12fx(NotepadBase):
     def __init__(self, **kwargs):
         super().__init__(
             idProduct=const.PRODUCT_ID_NOTEPAD_12FX,
-            routingTarget=("capture_3", "capture_4"),
-            fixedRouting=[(("capture_1", "capture_2"), ("Mic/Line 1", "Mic/Line 2"))],
+            routingTarget=label_pair("capture_", 3),
+            fixedRouting=[(label_pair("capture_", 1), label_pair("Mic/Line ", 1))],
+            playbackLabels=[
+                (label_pair("playback_", 1), stereo_label("Stereo 9/10")),
+                (label_pair("playback_", 3), stereo_label("USB-3/4")),
+            ],
             **kwargs,
         )
 
@@ -168,7 +184,7 @@ class Notepad_12fx(NotepadBase):
         MASTER_L_R = 3
 
     Label = {
-        Sources.INPUT_3_4: ("Mic/Line 3", "Mic/Line 4"),
+        Sources.INPUT_3_4: label_pair("Mic/Line ", 3),
         Sources.INPUT_5_6: stereo_label("Stereo 5/6"),
         Sources.INPUT_7_8: stereo_label("Stereo 7/8"),
         Sources.MASTER_L_R: stereo_label("Mix"),
@@ -179,7 +195,8 @@ class Notepad_8fx(NotepadBase):
     def __init__(self, **kwargs):
         super().__init__(
             idProduct=const.PRODUCT_ID_NOTEPAD_8FX,
-            routingTarget=("capture_1", "capture_2"),
+            routingTarget=label_pair("capture_", 1),
+            playbackLabels=[(label_pair("playback_", 1), stereo_label("Stereo 7/8"))],
             **kwargs,
         )
 
@@ -190,7 +207,7 @@ class Notepad_8fx(NotepadBase):
         MASTER_L_R = 3
 
     Label = {
-        Sources.INPUT_1_2: ("Mic/Line 1", "Mic/Line 2"),
+        Sources.INPUT_1_2: label_pair("Mic/Line ", 1),
         Sources.INPUT_3_4: stereo_label("Stereo 3/4"),
         Sources.INPUT_5_6: stereo_label("Stereo 5/6"),
         Sources.MASTER_L_R: stereo_label("Mix"),
@@ -201,7 +218,8 @@ class Notepad_5(NotepadBase):
     def __init__(self, **kwargs):
         super().__init__(
             idProduct=const.PRODUCT_ID_NOTEPAD_5,
-            routingTarget=("capture_1", "capture_2"),
+            routingTarget=label_pair("capture_", 1),
+            playbackLabels=[(label_pair("playback_", 1), stereo_label("Stereo 4/5"))],
             **kwargs,
         )
 

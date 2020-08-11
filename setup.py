@@ -53,7 +53,7 @@ setup(
         "Topic :: Multimedia :: Sound/Audio :: Mixers",
     ],
     python_requires=">=3.6",
-    install_requires=["pyusb", "pydbus"],
+    install_requires=["pyusb", "pydbus", "jack-client"],
     dependency_links=[],
     entry_points={
         "console_scripts": [

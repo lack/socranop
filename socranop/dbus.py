@@ -49,6 +49,7 @@ class NotepadDbus(object):
         <interface name='{const.DEVICE_INTERFACE}'>
           <property name='name'          type='s'           access='read' />
           <property name='fixedRouting'  type='a((ss)(ss))' access='read' />
+          <property name='playbackLabels' type='a((ss)(ss))' access='read' />
           <property name='routingTarget' type='(ss)'        access='read' />
           <property name='sources'       type='a{{s(ss)}}'  access='read' />
           <property name='routingSource' type='s'           access='readwrite'>
@@ -71,6 +72,10 @@ class NotepadDbus(object):
     @property
     def fixedRouting(self):
         return self._dev.fixedRouting
+
+    @property
+    def playbackLabels(self):
+        return self._dev.playbackLabels
 
     @property
     def routingTarget(self):

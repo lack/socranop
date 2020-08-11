@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 pyusb = "*"
 pydbus = "*"
+jack-client = "*"
 
 [dev-packages]
 socranop = {editable = true, path = "."}
@@ -13,6 +14,7 @@ black = "*"
 flake8 = "*"
 isort = "*"
 pytest = "*"
+pytest-mock = "*"
 tox = "*"
 tox-pyenv = "*"
 pipenv-setup = "*"
