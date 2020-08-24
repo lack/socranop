@@ -123,7 +123,9 @@ def main():
         "-j",
         "--jack",
         help="Synchronize jack port names based (may be used in conjunction with -s)",
-        action="store_true",
+        action="store",
+        choices=["rename", "alias", "reset"],
+        default="rename",
     )
     args = parser.parse_args()
     common.VERBOSE = args.verbose
