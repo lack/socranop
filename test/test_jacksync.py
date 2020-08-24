@@ -36,25 +36,49 @@ class MockJackPort:
 
 
 @pytest.mark.parametrize(
-    "name, aliases, expected",
+    "name, aliases, expected_name, expected_alsa_alias, expected_alias_prefix",
     [
-        ("Notepad12FX,0,0-out:capture_1", [], "capture_1"),
-        ("Notepad12FX,0,0-out:othername", ["playback_2"], "playback_2"),
-        ("Notepad12FX,0,0-out:capture_3", ["some alias", "playback_4"], "capture_3"),
-        ("Notepad12FX,0,0-out:othername", [], None),
-        ("system:capture_1", ["alsa_pcm:hw:Notepad12FX:out1"], "capture_1"),
-        ("system:playback_2", ["alsa_pcm:hw:Notepad12FX:in2"], "playback_2"),
+        ("Notepad12FX,0,0-out:capture_1", [], "capture_1", None, None),
+        ("Notepad12FX,0,0-out:othername", ["playback_2"], "playback_2", None, None),
         (
-            "system:othername",
+            "Notepad12FX,0,0-out:capture_3",
+            ["some alias", "playback_4"],
+            "capture_3",
+            None,
+            None,
+        ),
+        ("Notepad12FX,0,0-out:othername", [], None, None, None),
+        (
+            "system:capture_1",
+            ["alsa_pcm:hw:Notepad12FX:out1"],
+            "capture_1",
+            "alsa_pcm:hw:Notepad12FX:out1",
+            "Notepad12FX",
+        ),
+        (
+            "system:playback_2",
+            ["alsa_pcm:hw:Notepad12FX:in2"],
+            "playback_2",
+            "alsa_pcm:hw:Notepad12FX:in2",
+            "Notepad12FX",
+        ),
+        (
+            "system:Notepad12FX:othername",
             ["alsa_pcm:hw:Notepad12FX:out3", "capture_3"],
             "capture_3",
+            "alsa_pcm:hw:Notepad12FX:out3",
+            "Notepad12FX",
         ),
     ],
 )
-def test_port_constructor(name, aliases, expected):
+def test_port_constructor(
+    name, aliases, expected_name, expected_alsa_alias, expected_alias_prefix
+):
     port_mock = MockJackPort(name, aliases)
     port = jacksync.Port(port_mock)
-    assert port.originalname == expected
+    assert port.originalname == expected_name
+    assert port.alsa_alias == expected_alsa_alias
+    assert port.alias_prefix == expected_alias_prefix
 
 
 @pytest.mark.parametrize(
@@ -66,7 +90,11 @@ def test_port_constructor(name, aliases, expected):
         ("Notepad12FX,0,0-out:othername", [], True),
         ("system:capture_1", ["alsa_pcm:hw:Notepad12FX:out1"], True),
         ("system:playback_2", ["alsa_pcm:hw:Notepad12FX:in2"], True),
-        ("system:othername", ["alsa_pcm:hw:Notepad12FX:out3", "capture_3"], True),
+        (
+            "system:Notepad12FX:othername",
+            ["alsa_pcm:hw:Notepad12FX:out3", "capture_3"],
+            True,
+        ),
         ("system:capture_1", [], False),
         ("system:capture_1", ["alias1", "alias2"], False),
     ],
@@ -115,7 +143,7 @@ def test_port_is_notepad(name, aliases, expected):
             ["alsa_pcm:hw:Notepad12FX:in2", "playback_2"],
         ),
         (
-            "system:alias",
+            "system:Notepad12FX:alias",
             ["alsa_pcm:hw:Notepad12FX:out3", "capture_3"],
             "new alias",
             ["alsa_pcm:hw:Notepad12FX:out3", "capture_3"],
@@ -126,7 +154,7 @@ def test_port_rename(name, aliases, new_name, expected_aliases):
     port_mock = MockJackPort(name, aliases)
     port = jacksync.Port(port_mock)
     port.rename(new_name)
-    assert port_mock.shortname == new_name
+    assert port_mock.shortname == port.prefixed_alias(new_name)
     assert port_mock.aliases == expected_aliases
 
 
@@ -150,22 +178,22 @@ def test_port_rename_none():
         (
             "system:capture_1",
             ["alsa_pcm:hw:Notepad12FX:out1"],
-            ["alsa_pcm:hw:Notepad12FX:out1", "alias"],
+            ["alsa_pcm:hw:Notepad12FX:out1", "Notepad12FX:alias"],
         ),
         (
             "system:capture_1",
-            ["alsa_pcm:hw:Notepad12FX:out1", "alias"],
-            ["alsa_pcm:hw:Notepad12FX:out1", "alias"],
+            ["alsa_pcm:hw:Notepad12FX:out1", "Notepad12FX:alias"],
+            ["alsa_pcm:hw:Notepad12FX:out1", "Notepad12FX:alias"],
         ),
         (
             "system:capture_1",
-            ["alsa_pcm:hw:Notepad12FX:out1", "old alias"],
-            ["alsa_pcm:hw:Notepad12FX:out1", "alias"],
+            ["alsa_pcm:hw:Notepad12FX:out1", "Notepad12FX:old alias"],
+            ["alsa_pcm:hw:Notepad12FX:out1", "Notepad12FX:alias"],
         ),
         (
-            "system:alias",
+            "system:Notepad12FX:alias",
             ["alsa_pcm:hw:Notepad12FX:out1", "capture_1"],
-            ["alsa_pcm:hw:Notepad12FX:out1", "alias"],
+            ["alsa_pcm:hw:Notepad12FX:out1", "Notepad12FX:alias"],
         ),
     ],
 )
@@ -202,12 +230,12 @@ def test_port_alias(name, aliases, expected):
             ["alsa_pcm:hw:Notepad12FX:out1"],
         ),
         (
-            "system:alias",
+            "system:Notepad12FX:alias",
             ["alsa_pcm:hw:Notepad12FX:out1", "capture_1"],
             ["alsa_pcm:hw:Notepad12FX:out1"],
         ),
         (
-            "system:alias",
+            "system:Notepad12FX:alias",
             ["capture_1", "alsa_pcm:hw:Notepad12FX:out1"],
             ["alsa_pcm:hw:Notepad12FX:out1"],
         ),

@@ -13,9 +13,14 @@ class Port:
                 self.originalname = name
                 break
         self.alsa_alias = None
+        self.alias_prefix = None
         for alias in self.jack.aliases:
             if alias.startswith("alsa"):
                 self.alsa_alias = alias
+                for part in alias.split(":"):
+                    if part.startswith("Notepad"):
+                        self.alias_prefix = part
+                        break
 
     def is_notepad(self):
         # Ubuntu Studio uses zita-a2j with jack, and has the main port named
@@ -52,11 +57,16 @@ class Port:
             print(f"Setting up alias {alias}")
             self.jack.set_alias(alias)
 
+    def prefixed_alias(self, alias):
+        if self.alias_prefix is None:
+            return alias
+        return f"{self.alias_prefix}:{alias}"
+
     def rename(self, alias):
-        self._rename(alias, self.originalname)
+        self._rename(self.prefixed_alias(alias), self.originalname)
 
     def alias(self, alias):
-        self._rename(self.originalname, alias)
+        self._rename(self.originalname, self.prefixed_alias(alias))
 
     def reset(self):
         self._rename(self.originalname, None)
