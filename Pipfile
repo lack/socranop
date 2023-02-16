@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 pyusb = "*"
 pydbus = "*"
+socranop = {path = "."}
 
 [dev-packages]
 socranop = {editable = true, path = "."}
